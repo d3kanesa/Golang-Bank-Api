@@ -18,10 +18,10 @@ type CoinDetails struct {
 type DatabaseInterface interface {
 	GetUserLoginDetails(username string) *LoginDetails
 	GetUserCoins(username string) *CoinDetails
-	ModifyUserCoins(username string, amount int64) *CoinDetails
-	TransferCoins(sender string, receiver string, amount int64) *CoinDetails
+	ModifyUserCoins(username string, amount int64) (*CoinDetails, string)
+	TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string)
 	SetupDatabase() error
-	CreateUser(username string, authtoken string, coins int64) *LoginDetails
+	CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string)
 }
 
 func NewDatabase() (*DatabaseInterface, error) {

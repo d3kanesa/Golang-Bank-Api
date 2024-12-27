@@ -46,6 +46,7 @@ func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
 	}
 	return &clientData
 }
+
 func (d *mockDB) GetUserCoins(username string) *CoinDetails {
 	time.Sleep(time.Second * 1)
 	var clientData = CoinDetails{}
@@ -60,66 +61,68 @@ func (d *mockDB) SetupDatabase() error {
 	return nil
 }
 
-func (d *mockDB) ModifyUserCoins(username string, amount int64) *CoinDetails {
+func (d *mockDB) ModifyUserCoins(username string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
 	if amount<0 {
-		return nil
+		return nil, "can't deposit a negative amount"
 	}
 	var clientData = CoinDetails{}
 	clientData, ok := mockCoinDetails[username]
 	if !ok {
-		return nil
+		return nil, "user not found"
 	}
 	clientData.Coins += amount
 	mockCoinDetails[username] = clientData
-	return &clientData
+	return &clientData, ""
 }
 
-func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) *CoinDetails {
+func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
 	fmt.Println(sender, receiver, amount)
 	if amount<0 {
-		return nil
+		return nil, "can't transfer negative amount"
 	}
 	fmt.Println("reaches")
 	var senderData = CoinDetails{}
 	senderData, ok := mockCoinDetails[sender]
 	if !ok {
-		return nil
+		return nil, "sender not found"
 	}
 	fmt.Println("reaches")
 	if (senderData.Coins - amount) < 0 {
-		return nil
+		return nil, "insufficient balance"
 	}
 	fmt.Println("reaches")
 	var receiverData = CoinDetails{}
 	receiverData, ok = mockCoinDetails[receiver]
 	if !ok {
-		return nil
+		return nil, "receiver not found"
 	}
 	fmt.Println("reaches")
 	senderData.Coins -= amount
 	receiverData.Coins += amount
 	mockCoinDetails[sender] = senderData
 	mockCoinDetails[receiver] = receiverData
-	return &senderData
+	return &senderData, ""
 }
 
-func (d *mockDB) CreateUser(username string, authtoken string, coins int64) *LoginDetails {
+func (d *mockDB) CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string) {
 	time.Sleep(time.Second * 1)
-	_, err := mockLoginDetails[username]
-	if !err || coins<0 {
-		mockLoginDetails[username] = LoginDetails{
-			Username: username,
-			AuthToken: authtoken,
-		}
-		mockCoinDetails[username] = CoinDetails{
-			Username: username,
-			Coins: coins,
-		}
-		clientData := mockLoginDetails[username]
-		return &clientData
-	} else {
-		return nil
+	if coins < 0 {
+		return nil, "coins can't be negative"
 	}
+	_, err := mockLoginDetails[username]
+	if !err {
+		return nil, "User already exists"
+	}
+	mockLoginDetails[username] = LoginDetails{
+		Username: username,
+		AuthToken: authtoken,
+	}
+	mockCoinDetails[username] = CoinDetails{
+		Username: username,
+		Coins: coins,
+	}
+	clientData := mockLoginDetails[username]
+	return &clientData, ""
 }

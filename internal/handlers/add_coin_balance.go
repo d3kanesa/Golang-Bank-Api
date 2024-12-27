@@ -6,6 +6,8 @@ import (
     "apiProject/api"
     "apiProject/internal/tools"
     log "github.com/sirupsen/logrus"
+    "errors"
+    "fmt"
 )
 
 func AddCoins(w http.ResponseWriter, r *http.Request) {
@@ -24,10 +26,10 @@ func AddCoins(w http.ResponseWriter, r *http.Request) {
         return
     }
 	
-    var tokenDetails *tools.CoinDetails = (*database).ModifyUserCoins(params.Username, params.AddAmount)
+    tokenDetails, e := (*database).ModifyUserCoins(params.Username, params.AddAmount)
 	if tokenDetails == nil {
 		log.Error(err)
-		api.InternalErrorHandler(w)
+		api.RequestErrorHandler(w, errors.New(fmt.Sprintf(e)))
 		return
 	}
 

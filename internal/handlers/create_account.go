@@ -10,7 +10,6 @@ import (
 	"errors"
 )
 
-var userExists = errors.New(fmt.Sprintf("Invalid Parameters"))
 
 
 func CreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -29,10 +28,10 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
         return
     }
 	fmt.Println(params)
-    var tokenDetails *tools.LoginDetails = (*database).CreateUser(params.Username, params.AuthToken, params.Coins)
+    tokenDetails, e := (*database).CreateUser(params.Username, params.AuthToken, params.Coins)
 	if tokenDetails == nil {
 		log.Error(err)
-		api.RequestErrorHandler(w, userExists)
+		api.RequestErrorHandler(w, errors.New(fmt.Sprintf(e)))
 		return
 	}
 

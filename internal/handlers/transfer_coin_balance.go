@@ -28,10 +28,10 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
         return
     }
 	fmt.Println(params)
-    var tokenDetails *tools.CoinDetails = (*database).TransferCoins(params.Username, params.Receiver, params.AddAmount)
+    tokenDetails,  e := (*database).TransferCoins(params.Username, params.Receiver, params.AddAmount)
 	if tokenDetails == nil {
 		log.Error(err)
-		api.RequestErrorHandler(w,userNotFound)
+		api.RequestErrorHandler(w,errors.New(fmt.Sprintf(e)))
 		return
 	}
 
