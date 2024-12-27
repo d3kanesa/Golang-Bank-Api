@@ -7,7 +7,10 @@ import (
     "apiProject/internal/tools"
     log "github.com/sirupsen/logrus"
 	"fmt"
+    "errors"
 )
+
+var userNotFound = errors.New(fmt.Sprintf("Invalid Parameters"))
 
 func TransferCoins(w http.ResponseWriter, r *http.Request) {
     var params api.TransferCoinParams
@@ -28,7 +31,7 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
     var tokenDetails *tools.CoinDetails = (*database).TransferCoins(params.Username, params.Receiver, params.AddAmount)
 	if tokenDetails == nil {
 		log.Error(err)
-		api.InternalErrorHandler(w)
+		api.RequestErrorHandler(w,userNotFound)
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 	"errors"
 )
 
-var userExists = errors.New(fmt.Sprintf("User already exists"))
+var userExists = errors.New(fmt.Sprintf("Invalid Parameters"))
 
 
 func CreateAccount(w http.ResponseWriter, r *http.Request) {
