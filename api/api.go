@@ -14,22 +14,22 @@ type CoinBalanceResponse struct {
 	Balance int64
 }
 
-type AddCoinParams struct {
-	Username string
-	AddAmount int64
+type ModifyCoinParams struct {
+	Username string `json:"username" validate:"required"`
+	ModifyAmount int64 `json:"modifyAmount" validate:"required"`
 }
 
 type TransferCoinParams struct {
-	Username string
-	Receiver string
-	AddAmount int64
+	Username string `json:"username" validate:"required"`
+	Receiver string `json:"receiver" validate:"required"`
+	AddAmount int64 `json:"addAmount" validate:"required"`
 }
 
 type AddUserParams struct {
-	Username string
-	AuthToken string
-	Coins int64
-}
+	Username string `json:"username" validate:"required"`
+	AuthToken string `json:"authtoken" validate:"required"`
+	Coins int64 `json:"coins" validate:"required"`
+} 
 
 type Error struct {
 	Code int

@@ -1,8 +1,8 @@
 package tools
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
 type mockDB struct{}
@@ -10,29 +10,29 @@ type mockDB struct{}
 var mockLoginDetails = map[string]LoginDetails{
 	"deshna": {
 		AuthToken: "abc",
-		Username: "deshna",
+		Username:  "deshna",
 	},
 	"dhirhan": {
 		AuthToken: "def",
-		Username: "dhirhan",
+		Username:  "dhirhan",
 	},
 	"darun": {
 		AuthToken: "ghi",
-		Username: "darun",
+		Username:  "darun",
 	},
 }
 
 var mockCoinDetails = map[string]CoinDetails{
 	"deshna": {
-		Coins: 10,
+		Coins:    10,
 		Username: "deshna",
 	},
 	"dhirhan": {
-		Coins: 100,
+		Coins:    100,
 		Username: "dhirhan",
 	},
 	"darun": {
-		Coins: 1000,
+		Coins:    1000,
 		Username: "darun",
 	},
 }
@@ -61,17 +61,24 @@ func (d *mockDB) SetupDatabase() error {
 	return nil
 }
 
-func (d *mockDB) ModifyUserCoins(username string, amount int64) (*CoinDetails, string) {
+func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
-	if amount<0 {
-		return nil, "can't deposit a negative amount"
+	if amount <= 0 {
+		return nil, "amount must be positive"
 	}
-	var clientData = CoinDetails{}
 	clientData, ok := mockCoinDetails[username]
 	if !ok {
 		return nil, "user not found"
 	}
-	clientData.Coins += amount
+	if !isDeposit && clientData.Coins < amount {
+		return nil, "insufficient funds"
+	}
+
+	if isDeposit {
+		clientData.Coins += amount
+	} else {
+		clientData.Coins -= amount
+	}
 	mockCoinDetails[username] = clientData
 	return &clientData, ""
 }
@@ -79,8 +86,8 @@ func (d *mockDB) ModifyUserCoins(username string, amount int64) (*CoinDetails, s
 func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
 	fmt.Println(sender, receiver, amount)
-	if amount<0 {
-		return nil, "can't transfer negative amount"
+	if amount <= 0 {
+		return nil, "amount must be positive"
 	}
 	fmt.Println("reaches")
 	var senderData = CoinDetails{}
@@ -111,17 +118,17 @@ func (d *mockDB) CreateUser(username string, authtoken string, coins int64) (*Lo
 	if coins < 0 {
 		return nil, "coins can't be negative"
 	}
-	_, err := mockLoginDetails[username]
-	if !err {
+	_, ok := mockLoginDetails[username]
+	if ok {
 		return nil, "User already exists"
 	}
 	mockLoginDetails[username] = LoginDetails{
-		Username: username,
+		Username:  username,
 		AuthToken: authtoken,
 	}
 	mockCoinDetails[username] = CoinDetails{
 		Username: username,
-		Coins: coins,
+		Coins:    coins,
 	}
 	clientData := mockLoginDetails[username]
 	return &clientData, ""

@@ -12,7 +12,8 @@ func Handler(r *chi.Mux) {
 	r.Route("/account", func(router chi.Router){
 		router.Use(middleware.Authorization)
 		router.Get("/coins", GetCoinBalance)
-		router.Post("/deposit", AddCoins)
+		router.Post("/deposit", DepositCoins)
+		router.Post("/withdraw", WithdrawCoins)
 		router.Post("/transfer", TransferCoins)
 	})
 

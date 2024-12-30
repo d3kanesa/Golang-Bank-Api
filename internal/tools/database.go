@@ -18,7 +18,7 @@ type CoinDetails struct {
 type DatabaseInterface interface {
 	GetUserLoginDetails(username string) *LoginDetails
 	GetUserCoins(username string) *CoinDetails
-	ModifyUserCoins(username string, amount int64) (*CoinDetails, string)
+	ModifyUserCoins(username string, amount int64, isDeposit bool) (*CoinDetails, string)
 	TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string)
 	SetupDatabase() error
 	CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string)
