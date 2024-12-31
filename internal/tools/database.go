@@ -1,6 +1,8 @@
 package tools
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -14,6 +16,14 @@ type CoinDetails struct {
 	Username string
 }
 
+type TransactionDetails struct {
+	id string
+	Username string
+	Type string
+	Receiver string
+	Amount int64
+	Timestamp time.Time
+}
 
 type DatabaseInterface interface {
 	GetUserLoginDetails(username string) *LoginDetails
@@ -22,6 +32,8 @@ type DatabaseInterface interface {
 	TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string)
 	SetupDatabase() error
 	CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string)
+	RecordTransaction(username string, transType string, receiver string, amount int64)
+	GetTransactionHistory(username string) []TransactionDetails
 }
 
 func NewDatabase() (*DatabaseInterface, error) {

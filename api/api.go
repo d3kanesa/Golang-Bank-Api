@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"apiProject/internal/tools"
 )
 
 type CoinBalanceParams struct {
@@ -12,6 +13,12 @@ type CoinBalanceParams struct {
 type CoinBalanceResponse struct {
 	Code int
 	Balance int64
+}
+
+type TransactionHistoryResponse struct {
+	Username string
+	Transactions []tools.TransactionDetails
+	Code int
 }
 
 type ModifyCoinParams struct {

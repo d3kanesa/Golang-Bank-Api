@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"time"
+	"github.com/google/uuid"
 )
 
 type mockDB struct{}
@@ -35,6 +36,36 @@ var mockCoinDetails = map[string]CoinDetails{
 		Coins:    1000,
 		Username: "darun",
 	},
+}
+
+var mockTransactionHistory = make(map[string][]TransactionDetails)
+
+func init(){
+	mockTransactionHistory["deshna"] = []TransactionDetails{}
+	mockTransactionHistory["dhirhan"] = []TransactionDetails{}
+	mockTransactionHistory["darun"] = []TransactionDetails{}
+}
+
+func (d *mockDB) RecordTransaction(username string, transType string, receiver string, amount int64) {
+	var transaction = TransactionDetails{
+		id: uuid.New().String(),
+		Username:  username,
+		Type:      transType,
+		Receiver:  receiver,
+		Amount:    amount,
+		Timestamp: time.Now(),
+	}
+	mockTransactionHistory[username] = append(mockTransactionHistory[username], transaction)
+}
+
+func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
+	time.Sleep(time.Second * 1)
+	var clientData = []TransactionDetails{}
+	clientData, ok := mockTransactionHistory[username]
+	if !ok {
+		return nil
+	}
+	return clientData
 }
 
 func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
@@ -75,8 +106,10 @@ func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) 
 	}
 
 	if isDeposit {
+		d.RecordTransaction(username, "deposit", "", amount)
 		clientData.Coins += amount
 	} else {
+		d.RecordTransaction(username, "withdrawl", "", amount)
 		clientData.Coins -= amount
 	}
 	mockCoinDetails[username] = clientData
@@ -110,6 +143,7 @@ func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*C
 	receiverData.Coins += amount
 	mockCoinDetails[sender] = senderData
 	mockCoinDetails[receiver] = receiverData
+	d.RecordTransaction(sender, "transfer", receiver, amount)
 	return &senderData, ""
 }
 
@@ -130,6 +164,7 @@ func (d *mockDB) CreateUser(username string, authtoken string, coins int64) (*Lo
 		Username: username,
 		Coins:    coins,
 	}
+	mockTransactionHistory[username] = []TransactionDetails{}
 	clientData := mockLoginDetails[username]
 	return &clientData, ""
 }

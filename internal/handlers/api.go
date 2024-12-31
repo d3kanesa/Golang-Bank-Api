@@ -15,6 +15,7 @@ func Handler(r *chi.Mux) {
 		router.Post("/deposit", DepositCoins)
 		router.Post("/withdraw", WithdrawCoins)
 		router.Post("/transfer", TransferCoins)
+		router.Get("/transactions", TransactionDetails)
 	})
 
 	r.Post("/createAccount", CreateAccount)
