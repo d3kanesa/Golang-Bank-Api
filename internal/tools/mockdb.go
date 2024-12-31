@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"fmt"
 	"time"
 	"github.com/google/uuid"
 )
@@ -55,7 +54,7 @@ func (d *mockDB) RecordTransaction(username string, transType string, receiver s
 		Amount:    amount,
 		Timestamp: time.Now(),
 	}
-	mockTransactionHistory[username] = append(mockTransactionHistory[username], transaction)
+	mockTransactionHistory[username] = append([]TransactionDetails{transaction}, mockTransactionHistory[username]...)
 }
 
 func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
@@ -118,27 +117,22 @@ func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) 
 
 func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
-	fmt.Println(sender, receiver, amount)
 	if amount <= 0 {
 		return nil, "amount must be positive"
 	}
-	fmt.Println("reaches")
 	var senderData = CoinDetails{}
 	senderData, ok := mockCoinDetails[sender]
 	if !ok {
 		return nil, "sender not found"
 	}
-	fmt.Println("reaches")
 	if (senderData.Coins - amount) < 0 {
 		return nil, "insufficient balance"
 	}
-	fmt.Println("reaches")
 	var receiverData = CoinDetails{}
 	receiverData, ok = mockCoinDetails[receiver]
 	if !ok {
 		return nil, "receiver not found"
 	}
-	fmt.Println("reaches")
 	senderData.Coins -= amount
 	receiverData.Coins += amount
 	mockCoinDetails[sender] = senderData
