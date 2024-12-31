@@ -27,7 +27,6 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
         api.InternalErrorHandler(w)
         return
     }
-	fmt.Println(params)
     tokenDetails, e := (*database).CreateUser(params.Username, params.AuthToken, params.Coins)
 	if tokenDetails == nil {
 		log.Error(err)

@@ -31,7 +31,6 @@ func TransactionDetails(w http.ResponseWriter, r *http.Request) {
         api.InternalErrorHandler(w)
         return
     }
-	fmt.Println(params)
     transactionHistory := (*database).GetTransactionHistory(params.Username)
 	if transactionHistory == nil {
 		api.RequestErrorHandler(w, errors.New(fmt.Sprintf("No Transaction History found for user %s", params.Username)))

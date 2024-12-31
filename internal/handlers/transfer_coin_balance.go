@@ -27,7 +27,6 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
         api.InternalErrorHandler(w)
         return
     }
-	fmt.Println(params)
     tokenDetails,  e := (*database).TransferCoins(params.Username, params.Receiver, params.AddAmount)
 	if tokenDetails == nil {
 		log.Error(err)

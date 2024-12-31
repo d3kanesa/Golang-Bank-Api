@@ -1,11 +1,16 @@
 package tools
 
 import (
+	"sync"
 	"time"
 	"github.com/google/uuid"
 )
 
-type mockDB struct{}
+type mockDB struct{
+	loginMutex sync.RWMutex
+	coinMutex sync.RWMutex
+	transactionMutex sync.RWMutex
+}
 
 var mockLoginDetails = map[string]LoginDetails{
 	"deshna": {
@@ -54,11 +59,15 @@ func (d *mockDB) RecordTransaction(username string, transType string, receiver s
 		Amount:    amount,
 		Timestamp: time.Now(),
 	}
+	d.transactionMutex.Lock()
+	defer d.transactionMutex.Unlock()
 	mockTransactionHistory[username] = append([]TransactionDetails{transaction}, mockTransactionHistory[username]...)
 }
 
 func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
 	time.Sleep(time.Second * 1)
+	d.transactionMutex.RLock()
+	defer d.transactionMutex.RUnlock()
 	var clientData = []TransactionDetails{}
 	clientData, ok := mockTransactionHistory[username]
 	if !ok {
@@ -69,6 +78,8 @@ func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
 
 func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
 	time.Sleep(time.Second * 1)
+	d.loginMutex.RLock()
+	defer d.loginMutex.RUnlock()
 	var clientData = LoginDetails{}
 	clientData, ok := mockLoginDetails[username]
 	if !ok {
@@ -79,6 +90,8 @@ func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
 
 func (d *mockDB) GetUserCoins(username string) *CoinDetails {
 	time.Sleep(time.Second * 1)
+	d.coinMutex.RLock()
+	defer d.coinMutex.RUnlock()
 	var clientData = CoinDetails{}
 	clientData, ok := mockCoinDetails[username]
 	if !ok {
@@ -93,9 +106,12 @@ func (d *mockDB) SetupDatabase() error {
 
 func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
+	d.coinMutex.Lock()
+	defer d.coinMutex.Unlock()
 	if amount <= 0 {
 		return nil, "amount must be positive"
 	}
+
 	clientData, ok := mockCoinDetails[username]
 	if !ok {
 		return nil, "user not found"
@@ -117,10 +133,14 @@ func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) 
 
 func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
+	d.coinMutex.Lock()
+	defer d.coinMutex.Unlock()
 	if amount <= 0 {
 		return nil, "amount must be positive"
 	}
 	var senderData = CoinDetails{}
+
+	d.coinMutex.RLock()
 	senderData, ok := mockCoinDetails[sender]
 	if !ok {
 		return nil, "sender not found"
@@ -133,6 +153,7 @@ func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*C
 	if !ok {
 		return nil, "receiver not found"
 	}
+
 	senderData.Coins -= amount
 	receiverData.Coins += amount
 	mockCoinDetails[sender] = senderData
@@ -143,6 +164,8 @@ func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*C
 
 func (d *mockDB) CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string) {
 	time.Sleep(time.Second * 1)
+	d.loginMutex.Lock()
+	defer d.loginMutex.Unlock()
 	if coins < 0 {
 		return nil, "coins can't be negative"
 	}
