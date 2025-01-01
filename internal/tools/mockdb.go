@@ -8,8 +8,6 @@ import (
 
 type mockDB struct{
 	loginMutex sync.RWMutex
-	coinMutex sync.RWMutex
-	transactionMutex sync.RWMutex
 }
 
 var mockLoginDetails = map[string]LoginDetails{
@@ -43,11 +41,15 @@ var mockCoinDetails = map[string]CoinDetails{
 }
 
 var mockTransactionHistory = make(map[string][]TransactionDetails)
+var userMutexes map[string]*sync.RWMutex = make(map[string]*sync.RWMutex)
 
 func init(){
 	mockTransactionHistory["deshna"] = []TransactionDetails{}
 	mockTransactionHistory["dhirhan"] = []TransactionDetails{}
 	mockTransactionHistory["darun"] = []TransactionDetails{}
+	userMutexes["deshna"] = &sync.RWMutex{}
+	userMutexes["dhirhan"] = &sync.RWMutex{}
+	userMutexes["darun"] = &sync.RWMutex{}
 }
 
 func (d *mockDB) RecordTransaction(username string, transType string, receiver string, amount int64) {
@@ -59,15 +61,13 @@ func (d *mockDB) RecordTransaction(username string, transType string, receiver s
 		Amount:    amount,
 		Timestamp: time.Now(),
 	}
-	d.transactionMutex.Lock()
-	defer d.transactionMutex.Unlock()
 	mockTransactionHistory[username] = append([]TransactionDetails{transaction}, mockTransactionHistory[username]...)
 }
 
 func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
 	time.Sleep(time.Second * 1)
-	d.transactionMutex.RLock()
-	defer d.transactionMutex.RUnlock()
+	userMutexes[username].RLock()
+	defer userMutexes[username].RUnlock()
 	var clientData = []TransactionDetails{}
 	clientData, ok := mockTransactionHistory[username]
 	if !ok {
@@ -78,8 +78,6 @@ func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
 
 func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
 	time.Sleep(time.Second * 1)
-	d.loginMutex.RLock()
-	defer d.loginMutex.RUnlock()
 	var clientData = LoginDetails{}
 	clientData, ok := mockLoginDetails[username]
 	if !ok {
@@ -90,9 +88,9 @@ func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
 
 func (d *mockDB) GetUserCoins(username string) *CoinDetails {
 	time.Sleep(time.Second * 1)
-	d.coinMutex.RLock()
-	defer d.coinMutex.RUnlock()
 	var clientData = CoinDetails{}
+	userMutexes[username].RLock()
+	defer userMutexes[username].RUnlock()
 	clientData, ok := mockCoinDetails[username]
 	if !ok {
 		return nil
@@ -106,8 +104,8 @@ func (d *mockDB) SetupDatabase() error {
 
 func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
-	d.coinMutex.Lock()
-	defer d.coinMutex.Unlock()
+	userMutexes[username].Lock()
+	defer userMutexes[username].Unlock()
 	if amount <= 0 {
 		return nil, "amount must be positive"
 	}
@@ -133,14 +131,15 @@ func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) 
 
 func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
-	d.coinMutex.Lock()
-	defer d.coinMutex.Unlock()
+	userMutexes[sender].Lock()
+	userMutexes[receiver].Lock()
+	defer userMutexes[sender].Unlock()
+	defer userMutexes[receiver].Unlock()
+
 	if amount <= 0 {
 		return nil, "amount must be positive"
 	}
 	var senderData = CoinDetails{}
-
-	d.coinMutex.RLock()
 	senderData, ok := mockCoinDetails[sender]
 	if !ok {
 		return nil, "sender not found"
@@ -182,6 +181,7 @@ func (d *mockDB) CreateUser(username string, authtoken string, coins int64) (*Lo
 		Coins:    coins,
 	}
 	mockTransactionHistory[username] = []TransactionDetails{}
+	userMutexes[username] = &sync.RWMutex{}
 	clientData := mockLoginDetails[username]
 	return &clientData, ""
 }
