@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type mockDB struct{
+type MockDB struct{
 	loginMutex sync.RWMutex
 }
 
@@ -52,7 +52,7 @@ func init(){
 	userMutexes["darun"] = &sync.RWMutex{}
 }
 
-func (d *mockDB) RecordTransaction(username string, transType string, receiver string, amount int64) {
+func (d *MockDB) RecordTransaction(username string, transType string, receiver string, amount int64) {
 	var transaction = TransactionDetails{
 		id: uuid.New().String(),
 		Username:  username,
@@ -64,7 +64,7 @@ func (d *mockDB) RecordTransaction(username string, transType string, receiver s
 	mockTransactionHistory[username] = append([]TransactionDetails{transaction}, mockTransactionHistory[username]...)
 }
 
-func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
+func (d *MockDB) GetTransactionHistory(username string) []TransactionDetails {
 	time.Sleep(time.Second * 1)
 	userMutexes[username].RLock()
 	defer userMutexes[username].RUnlock()
@@ -76,7 +76,7 @@ func (d *mockDB) GetTransactionHistory(username string) []TransactionDetails {
 	return clientData
 }
 
-func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
+func (d *MockDB) GetUserLoginDetails(username string) *LoginDetails {
 	time.Sleep(time.Second * 1)
 	var clientData = LoginDetails{}
 	clientData, ok := mockLoginDetails[username]
@@ -86,7 +86,7 @@ func (d *mockDB) GetUserLoginDetails(username string) *LoginDetails {
 	return &clientData
 }
 
-func (d *mockDB) GetUserCoins(username string) *CoinDetails {
+func (d *MockDB) GetUserCoins(username string) *CoinDetails {
 	time.Sleep(time.Second * 1)
 	var clientData = CoinDetails{}
 	userMutexes[username].RLock()
@@ -98,11 +98,11 @@ func (d *mockDB) GetUserCoins(username string) *CoinDetails {
 	return &clientData
 }
 
-func (d *mockDB) SetupDatabase() error {
+func (d *MockDB) SetupDatabase() error {
 	return nil
 }
 
-func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) (*CoinDetails, string) {
+func (d *MockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
 	userMutexes[username].Lock()
 	defer userMutexes[username].Unlock()
@@ -129,12 +129,16 @@ func (d *mockDB) ModifyUserCoins(username string, amount int64, isDeposit bool) 
 	return &clientData, ""
 }
 
-func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
+func (d *MockDB) TransferCoins(sender string, receiver string, amount int64) (*CoinDetails, string) {
 	time.Sleep(time.Second * 1)
-	userMutexes[sender].Lock()
-	userMutexes[receiver].Lock()
-	defer userMutexes[sender].Unlock()
-	defer userMutexes[receiver].Unlock()
+	lock1, lock2 := sender, receiver
+	if lock1>lock2 {
+		lock1, lock2 = lock2, lock1
+	}
+	userMutexes[lock1].Lock()
+	userMutexes[lock2].Lock()
+	defer userMutexes[lock1].Unlock()
+	defer userMutexes[lock2].Unlock()
 
 	if amount <= 0 {
 		return nil, "amount must be positive"
@@ -161,7 +165,7 @@ func (d *mockDB) TransferCoins(sender string, receiver string, amount int64) (*C
 	return &senderData, ""
 }
 
-func (d *mockDB) CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string) {
+func (d *MockDB) CreateUser(username string, authtoken string, coins int64) (*LoginDetails, string) {
 	time.Sleep(time.Second * 1)
 	d.loginMutex.Lock()
 	defer d.loginMutex.Unlock()
