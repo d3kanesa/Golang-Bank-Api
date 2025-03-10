@@ -7,14 +7,11 @@ A simple banking API built with Golang that supports account creation, transacti
 - Deposit and withdrawal functionality
 - Transfer funds between accounts
 - View account balances
-- Secure authentication and authorization
+- View account transactions
 
 ## Technologies Used
 - Golang
-- Gorilla Mux (Router)
-- PostgreSQL (Database)
-- GORM (ORM)
-- JWT Authentication
+- Chi Mux (Router)
 - Docker (Containerization)
 
 ## Prerequisites
@@ -32,7 +29,7 @@ cd Golang-Bank-Api
 ## Running within Go
 
 ```sh
-go mod init github.com/d3kanesa/Golang-Bank-Api
+go mod init apiProject
 go mod tidy
 go run cmd/api/main.go
 ```
@@ -53,6 +50,7 @@ docker run -p 8000:8000 golang-bank-api
 | POST   | `/account/deposit`     | Deposit funds              |
 | POST   | `/account/withdraw`    | Withdraw funds             |
 | POST   | `/account/transfer`    | Transfer funds to another account |
+| POST   | `/createAccount`       | Create a new account       |
 
 ## Contributing
 1. Fork the repository
@@ -60,7 +58,3 @@ docker run -p 8000:8000 golang-bank-api
 3. Commit your changes (`git commit -m 'Add feature'`)
 4. Push to the branch (`git push origin feature-branch`)
 5. Open a Pull Request
-
-## License
-This project is licensed under the MIT License.
-
